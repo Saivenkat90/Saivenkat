@@ -1,0 +1,30 @@
+const express = require('express');
+const { MongoClient } = require('mongodb');
+const path = require('path');
+
+const app = express();
+const PORT = 3000;
+
+const MONGO_URL = 'mongodb://localhost:27017';
+const DB_NAME = 'school';
+
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.get('/api/students', async (req, res) => {
+  const client = new MongoClient(MONGO_URL);
+  try {
+    await client.connect();
+    const db = client.db(DB_NAME);
+    const students = await db.collection('marks').find().toArray();
+    res.json(students);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Database error' });
+  } finally {
+    await client.close();
+  }
+});
+
+app.listen(PORT, () => {
+  console.log(`Server running at http://localhost:${PORT}`);
+});
